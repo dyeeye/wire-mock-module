@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:wire-mock="http://www.mulesoft.org/schema/mule/wire-mock"
+      xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+      xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
+http://www.mulesoft.org/schema/mule/wire-mock http://www.mulesoft.org/schema/mule/wire-mock/current/mule-wire-mock.xsd">
+    <wire-mock:config name="Wire_mock_module_Config" doc:name="Wire-mock-module Config" />
+    <http:request-config name="Wire_Mock_HTTP_Request_configuration" doc:name="HTTP Request configuration" >
+        <http:request-connection host="0.0.0.0" port="8081" />
+    </http:request-config>
+
+    <flow name="wire-mock-server-listener-flow" >
+        <wire-mock:listener doc:name="Listener" config-ref="Wire_mock_module_Config"/>
+        <logger level="INFO" doc:name="Logger" />
+    </flow>
+    <flow name="upload-mappings-scheduled-flow" >
+        <scheduler doc:name="Scheduler">
+            <scheduling-strategy >
+                <fixed-frequency frequency="1" timeUnit="DAYS"/>
+            </scheduling-strategy>
+        </scheduler>
+        <http:request method="GET" doc:name="Get Mappings"  url="https://gist.githubusercontent.com/dyeeye/203723a53a916df4ccd3aa8c52dafc56/raw/28c3a4ce2754be1b4be375f36fa13528c1dd6b33/wire-mock-mappings.json" outputMimeType="application/json"/>
+        <http:request method="POST" doc:name="Upload Mappings"  config-ref="Wire_Mock_HTTP_Request_configuration" path="/__admin/mappings/import"/>
+        <logger level="INFO" doc:name="Finished" message="Mapping uploaded to Wire Mock"/>
+    </flow>
+</mule>
